@@ -25,9 +25,9 @@ dev
 |---|---|
 | `Quality Gate` | `quality-gate` (job resumen, bloquea todo) |
 | `[ Gate 0 ] Secret Scan` | `secret-scan` |
-| `[ Gate 1a ] Lint — Backend (TypeScript)` | `lint-backend` |
+| `[ Gate 1a ] Lint — Backend (JavaScript)` | `lint-backend` |
 | `[ Gate 1b ] Lint — Frontend (React)` | `lint-frontend` |
-| `[ Gate 1c ] SAST — CodeQL (JS / TS)` | `sast` |
+| `[ Gate 1c ] SAST — CodeQL (JS)` | `sast` |
 | `[ Gate 2a ] Tests — Backend (Jest)` | `test-backend` |
 | `[ Gate 2b ] Tests — Frontend (Vitest)` | `test-frontend` |
 
@@ -93,7 +93,7 @@ push/PR → main|dev
         ▼                          ▼                           ▼
 [ Gate 1a ]              [ Gate 1b ]                  [ Gate 1c ]
 Lint Backend             Lint Frontend                SAST CodeQL
-(ESLint TS)              (ESLint React)               (JS/TS)
+(ESLint JS)              (ESLint React)               (JS)
         │                          │
         ▼                          ▼
 [ Gate 2a ]              [ Gate 2b ]
