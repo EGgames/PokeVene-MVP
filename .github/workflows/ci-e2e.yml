@@ -83,6 +83,10 @@ jobs:
         working-directory: e2e
         run: npm ci --prefer-offline
 
+      - name: Run database migrations and seeds
+        working-directory: backend
+        run: npm run db:setup
+
       - name: Start backend server
         working-directory: backend
         run: npm start &
