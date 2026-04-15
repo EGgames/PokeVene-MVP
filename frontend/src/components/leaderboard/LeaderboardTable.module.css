@@ -1,0 +1,87 @@
+.wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.th {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.row {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.1s ease;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background-color: #f9fafb;
+}
+
+.topRow {
+  background-color: #fefce8;
+}
+
+.topRow:hover {
+  background-color: #fef9c3;
+}
+
+.td {
+  padding: 0.875rem 1rem;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.rankCell {
+  text-align: center;
+  width: 80px;
+}
+
+.badge {
+  font-size: 1.25rem;
+}
+
+.rankNumber {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.usernameCell {
+  font-weight: 600;
+  color: #111827;
+}
+
+.scoreCell {
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.dateCell {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.state {
+  padding: 2rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.95rem;
+}

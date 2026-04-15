@@ -1,0 +1,102 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9fafb;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #6366f1;
+  cursor: pointer;
+}
+
+.nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navLink {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #6366f1;
+  background: transparent;
+  color: #6366f1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.navLink:hover {
+  background-color: #eef2ff;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.refreshButton {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+
+.refreshButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+  background-color: #fee2e2;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
