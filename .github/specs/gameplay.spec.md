@@ -1,9 +1,9 @@
 ---
 id: SPEC-003
-status: DRAFT
+status: IMPLEMENTED
 feature: gameplay
 created: 2026-04-14
-updated: 2026-04-14
+updated: 2026-04-15
 author: spec-generator
 version: "1.0"
 related-specs: ["SPEC-002"]

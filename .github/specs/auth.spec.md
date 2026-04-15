@@ -1,9 +1,9 @@
 ---
 id: SPEC-002
-status: DRAFT
+status: IMPLEMENTED
 feature: auth
 created: 2026-04-14
-updated: 2026-04-14
+updated: 2026-04-16
 author: spec-generator
 version: "1.0"
 related-specs: []
@@ -11,7 +11,7 @@ related-specs: []
 
 # Spec: Autenticación de Usuarios (Backend JWT)
 
-> **Estado:** `DRAFT` → aprobar con `status: APPROVED` antes de iniciar implementación.
+> **Estado:** `IMPLEMENTED` → aprobar con `status: APPROVED` antes de iniciar implementación.
 > **Ciclo de vida:** DRAFT → APPROVED → IN_PROGRESS → IMPLEMENTED → DEPRECATED
 
 ---
