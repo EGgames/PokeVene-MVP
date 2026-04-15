@@ -1,0 +1,3 @@
+# services/
+# Lógica de negocio pura. Recibe repositorios por constructor.
+# Ejemplo: AuthService (register, login, validateToken)

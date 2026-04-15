@@ -1,0 +1,3 @@
+# routes/
+# Controladores HTTP. Solo parsean la request y delegan al service.
+# Ejemplo: authRoutes.js -> POST /api/v1/auth/register, /login, GET /me

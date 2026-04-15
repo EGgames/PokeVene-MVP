@@ -1,0 +1,3 @@
+# repositories/
+# Único punto de acceso a PostgreSQL via pool.
+# Ejemplo: UserRepository (create, findByUsername, findById)

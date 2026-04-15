@@ -1,0 +1,3 @@
+# models/
+# Schemas / DTOs para la capa de API.
+# Ejemplo: UserCreate, UserResponse, AuthTokenResponse
