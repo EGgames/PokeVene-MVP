@@ -34,7 +34,7 @@ jobs:
       pull-requests: write
 
   lint-backend:
-    name: "[ Gate 1a ] Lint — Backend (TypeScript)"
+    name: "[ Gate 1a ] Lint — Backend (JavaScript)"
     needs: secret-scan
     uses: ./.github/workflows/reusable-lint.yml
     permissions:
@@ -43,7 +43,7 @@ jobs:
       working-directory: backend
       node-version: "20"
       lint-command: >-
-        npx eslint "{src,apps,libs,test}/**/*.ts"
+        npx eslint "src/**/*.js"
         --max-warnings 0
         --format stylish
 
