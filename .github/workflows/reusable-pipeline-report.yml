@@ -142,9 +142,9 @@ jobs:
               '',
               '---',
               '',
-              jobSection('🔍', 'Lint — Backend (TypeScript)', R.lintBe, [
-                'npx eslint "{src,apps,libs,test}/**/*.ts" --max-warnings 0',
-                'Validación de reglas @typescript-eslint/recommended',
+              jobSection('🔍', 'Lint — Backend (JavaScript)', R.lintBe, [
+                'npx eslint "src/**/*.js" --max-warnings 0',
+                'Validación de reglas ESLint para Node.js/Express',
                 'Zero warnings enforcement — ningún warning permitido',
               ], 'ESLint', 'backend'),
               '',
@@ -158,9 +158,9 @@ jobs:
               '',
               '---',
               '',
-              jobSection('🛡️', 'SAST — CodeQL (JS / TS)', R.sast, [
+              jobSection('🛡️', 'SAST — CodeQL (JS)', R.sast, [
                 'Análisis estático de seguridad con CodeQL',
-                'Detección de vulnerabilidades en código JavaScript/TypeScript',
+                'Detección de vulnerabilidades en código JavaScript',
                 'Carga de resultados al tab Security de GitHub',
               ], 'CodeQL'),
               '',
@@ -175,8 +175,7 @@ jobs:
               '---',
               '',
               jobSection('🧪', 'Tests — Backend (Jest)', R.testBe, [
-                'Compilación de TypeScript vía ts-jest',
-                'Ejecución de suite de pruebas unitarias (.spec.ts)',
+                'Ejecución de suite de pruebas unitarias',
                 'Cobertura de código con --coverage (threshold 80%)',
                 'Generación y upload de artefacto coverage-backend',
               ], 'Tests', 'backend'),
@@ -205,7 +204,7 @@ jobs:
             ];
 
             // ── Upsert del comentario en el PR ──────────────────────────
-            const marker   = '<!-- hotel-mvp-pipeline-report -->';
+            const marker   = '<!-- pokevene-mvp-pipeline-report -->';
             const fullBody = `${marker}\n${sections.join('\n')}`;
 
             const { data: allComments } = await github.rest.issues.listComments({
