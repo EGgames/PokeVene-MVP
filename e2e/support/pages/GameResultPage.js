@@ -1,17 +1,17 @@
 class GameResultPage {
   get url() { return '/game-result'; }
 
-  // --- Selectors ---
-  get percentageText() { return browser.$('[class*="percentage"]'); }
-  get statusBadge() { return browser.$('[class*="statusBadge"]'); }
+  // --- Selectors (usan data-testid / IDs del frontend real) ---
+  get percentageText() { return browser.$('[data-testid="score-percentage"]'); }
+  get statusBadge() { return browser.$('[data-testid="game-status"]'); }
   get correctCount() { return browser.$('[class*="correct"]'); }
   get errorsCount() { return browser.$('[class*="errors"]'); }
-  get saveButton() { return browser.$('button*=Guardar en Tabla General'); }
-  get createAccountButton() { return browser.$('button*=Crear Cuenta para Guardar'); }
-  get retryButton() { return browser.$('button*=Jugar de Nuevo'); }
-  get homeButton() { return browser.$('button*=Volver al Inicio'); }
+  get saveButton() { return browser.$('#btn-save-score'); }
+  get createAccountButton() { return browser.$('#btn-register-to-save'); }
+  get retryButton() { return browser.$('#btn-retry'); }
+  get homeButton() { return browser.$('#btn-go-home'); }
   get leaderboardButton() { return browser.$('button*=Ver Tabla de Posiciones'); }
-  get successMessage() { return browser.$('[class*="success"]'); }
+  get successMessage() { return browser.$('[data-testid="save-success"]'); }
   get errorMessageEl() { return browser.$('[class*="error"]'); }
 
   async isDisplayed() {

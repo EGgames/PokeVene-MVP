@@ -18,13 +18,23 @@ Given('que el usuario se encuentra en la pantalla de inicio de sesión', async f
 });
 
 Given('que el usuario no ha iniciado sesión', async function () {
-  await browser.execute(() => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-  });
+  // El Before hook ya navegó al origen de la app y limpió localStorage.
+  // Solo verificamos que no hay token.
+  const token = await browser.execute(() => localStorage.getItem('auth_token'));
+  if (token) {
+    await browser.execute(() => {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+    });
+  }
 });
 
 Given('que el usuario accede a la pantalla del juego', async function () {
+  await GamePage.navigate();
+});
+
+// Variante sin "que" — usada como "Y el usuario accede a la pantalla del juego"
+Given('el usuario accede a la pantalla del juego', async function () {
   await GamePage.navigate();
 });
 

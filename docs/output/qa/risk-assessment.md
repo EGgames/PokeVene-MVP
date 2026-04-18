@@ -1,7 +1,7 @@
 # Evaluación de Riesgos — PokeVene-MVP
 
-> **Specs cubiertas:** SPEC-002 (Auth) · SPEC-003 (Gameplay)
-> **Fecha:** 2026-04-15
+> **Specs cubiertas:** SPEC-002 (Auth) · SPEC-003 (Gameplay) · SPEC-004 (Admin, Dashboard, Niveles, Sugerencias)
+> **Fecha:** 2026-04-18
 > **Autor:** QA Agent (ASDD)
 > **Metodología:** Regla ASD (Alto=obligatorio, Medio=recomendado, Bajo=opcional)
 
@@ -11,10 +11,10 @@
 
 | Nivel | Cantidad | Acción |
 |-------|----------|--------|
-| **Alto (A)** | 7 | Testing OBLIGATORIO — bloquea release |
-| **Medio (S)** | 5 | Testing RECOMENDADO — documentar si se omite |
-| **Bajo (D)** | 3 | Testing OPCIONAL — priorizar en backlog |
-| **Total** | **15** | |
+| **Alto (A)** | 11 | Testing OBLIGATORIO — bloquea release |
+| **Medio (S)** | 10 | Testing RECOMENDADO — documentar si se omite |
+| **Bajo (D)** | 5 | Testing OPCIONAL — priorizar en backlog |
+| **Total** | **26** | |
 
 ---
 
@@ -49,6 +49,34 @@
 | R-013 | HU-04 (Gameplay) | **Estilos CSS del leaderboard rotos en móviles**: tabla no se adapta a viewports pequeños y las columnas se superponen | Media | Bajo | **D** | Ajuste estético, sin impacto funcional |
 | R-014 | HU-05 (Gameplay) | **Textos UI no descriptivos**: mensajes como "Error" sin contexto no ayudan al usuario a entender qué ocurrió | Baja | Bajo | **D** | Feature interna, impacto limitado |
 | R-015 | General | **Desbalance en seed de términos**: proporción pokemon/venezolano no es 50/50, generando partidas sesgadas | Baja | Bajo | **D** | Datos estáticos, ajustable post-release |
+
+---
+
+### SPEC-004: Riesgos ALTO (A) — Testing Obligatorio
+
+| ID | HU | Descripción del Riesgo | Probabilidad | Impacto | Nivel | Factores |
+|----|----|----------------------|--------------|---------|-------|----------|
+| R-016 | HU-01/02 (Admin) | **Escalación de privilegios / bypass de adminMiddleware**: endpoints admin accesibles sin rol admin por middleware mal aplicado o bypasseable | Media | Alto | **A** | Autenticación/autorización, compromete toda la gestión |
+| R-017 | HU-02 (Admin) | **Usuario baneado con token activo no invalidado**: middleware no valida `banned_at` en cada request, permitiendo acceso con JWT aún vigente | Alta | Alto | **A** | Autorización, operación destructiva, seguridad |
+| R-018 | HU-06 (Sugerencias) | **Race condition en aprobación de sugerencia**: dos admins aprueban simultáneamente o el término se crea mientras hay sugerencia pendiente, generando duplicado | Media | Alto | **A** | Integridad de datos, operación sin rollback |
+| R-019 | HU-01/02 (Admin) | **Admin se auto-banea o auto-degrada**: falta validación de self-action causa lockout del sistema sin administradores | Baja | Alto | **A** | Operación destructiva irrecuperable, compromete acceso admin |
+
+### SPEC-004: Riesgos MEDIO (S) — Testing Recomendado
+
+| ID | HU | Descripción del Riesgo | Probabilidad | Impacto | Nivel | Factores |
+|----|----|----------------------|--------------|---------|-------|----------|
+| R-020 | HU-05 (XP/Niveles) | **Cálculo de XP/nivel incorrecto en edge cases**: `floor(xp/100)` mal implementado en frontera (99→100 XP), XP negativo o overflow | Media | Medio | **S** | Lógica de negocio compleja, afecta desbloqueo de sugerencias |
+| R-021 | HU-06 (Sugerencias) | **Límite de 5 sugerencias pendientes no validado bajo concurrencia**: usuario envía múltiples requests antes de que el conteo se actualice | Media | Medio | **S** | Código nuevo, múltiples dependencias |
+| R-022 | HU-08 (Settings) | **Cambio de umbral no aplicado inmediatamente**: cache o validación lee valor anterior, permitiendo sugerencias bajo umbral nuevo | Media | Medio | **S** | Alta frecuencia de uso, configuración dinámica |
+| R-023 | HU-03/06 (Términos) | **Validación case-insensitive de duplicados inconsistente**: "pikachu" vs "Pikachu" no se detecta como duplicado entre terms y sugerencias | Media | Medio | **S** | Integridad de datos, código nuevo |
+| R-024 | HU-07 (Dashboard Admin) | **Datos sensibles expuestos en listado de usuarios**: `password_hash` u otros campos internos incluidos en response del listado | Baja | Alto | **S** | Datos personales, información disclosure |
+
+### SPEC-004: Riesgos BAJO (D) — Testing Opcional
+
+| ID | HU | Descripción del Riesgo | Probabilidad | Impacto | Nivel | Factores |
+|----|----|----------------------|--------------|---------|-------|----------|
+| R-025 | HU-07 (Dashboard Admin) | **Dashboard admin no responsivo en dispositivos móviles**: tablas de usuarios y sugerencias no se adaptan a viewports pequeños | Media | Bajo | **D** | Ajuste estético, sin impacto funcional |
+| R-026 | HU-04 (Dashboard) | **Dashboard de usuario muestra datos desactualizados**: XP y nivel no se refrescan tras completar partida sin recarga manual | Media | Bajo | **D** | UX, impacto limitado |
 
 ---
 
@@ -148,7 +176,85 @@
 
 ---
 
-## Plan de Mitigación — Riesgos MEDIO
+## Plan de Mitigación — Riesgos ALTO (SPEC-004)
+
+### R-016: Escalación de privilegios / bypass de adminMiddleware
+- **Mitigación**:
+  - `adminMiddleware` debe validar `req.user.role === 'admin'` en TODAS las rutas `/api/v1/admin/*`
+  - Middleware aplicado a nivel de router, no por endpoint individual
+  - Verificar que `authMiddleware` se ejecuta ANTES de `adminMiddleware` (cadena correcta)
+  - Rechazar con 403 y mensaje genérico — no revelar existencia de endpoints admin
+- **Tests obligatorios**:
+  - Test unitario: adminMiddleware rechaza usuario con role='user' (403)
+  - Test unitario: adminMiddleware rechaza request sin role en req.user (403)
+  - Test integración: PATCH /admin/users/:id/role sin rol admin retorna 403
+  - Test integración: POST /admin/terms sin rol admin retorna 403
+  - Test integración: PATCH /admin/suggestions/:id sin rol admin retorna 403
+- **Test que lo cubre**: TC-ADMIN-002, TC-ADMIN-003, TC-ADMIN-008
+- **Bloqueante para release**: ✅ Sí
+
+### R-017: Usuario baneado con token activo no invalidado
+- **Mitigación**:
+  - `authMiddleware` DEBE consultar `banned_at` del usuario en CADA request protegida
+  - Si `banned_at IS NOT NULL` → retornar 403 "Tu cuenta ha sido suspendida"
+  - No depender solo de la validación en login — el ban debe ser efectivo inmediatamente
+  - Considerar cache de banned UIDs con TTL corto (30s) para reducir queries a BD
+- **Tests obligatorios**:
+  - Test integración: usuario baneado con token válido es rechazado en endpoint protegido (403)
+  - Test integración: POST /auth/login con usuario baneado retorna 403
+  - Test unitario: authMiddleware detecta banned_at y rechaza
+  - Test integración: usuario desbaneado puede acceder nuevamente
+- **Test que lo cubre**: TC-ADMIN-005, TC-ADMIN-006, TC-BAN-001, TC-BAN-002
+- **Bloqueante para release**: ✅ Sí
+
+### R-018: Race condition en aprobación de sugerencia
+- **Mitigación**:
+  - Usar transacción SQL (BEGIN/COMMIT) al aprobar sugerencia: verificar que el término no exista → crear término → actualizar sugerencia → COMMIT
+  - UNIQUE constraint en `terms.text` (case-insensitive) como defensa de último recurso
+  - Si el INSERT del término falla por duplicado, retornar 409 y no cambiar estado de la sugerencia
+- **Tests obligatorios**:
+  - Test integración: aprobar sugerencia cuyo término ya fue creado retorna 409
+  - Test unitario: servicio adminService.reviewSuggestion ejecuta transacción atómica
+  - Test integración: aprobar sugerencia crea el término y actualiza status en la misma operación
+- **Test que lo cubre**: TC-ADMIN-012, TC-SUGG-005
+- **Bloqueante para release**: ✅ Sí
+
+### R-019: Admin se auto-banea o auto-degrada
+- **Mitigación**:
+  - Validar `req.user.id !== targetUserId` en operaciones ban/unban y role change
+  - Si se detecta self-action → retornar 403 con mensaje específico
+  - Considerar validar que siempre exista al menos 1 admin en el sistema antes de revocar rol
+- **Tests obligatorios**:
+  - Test integración: admin intenta banearse a sí mismo retorna 403
+  - Test integración: admin intenta cambiar su propio rol retorna 403
+  - Test unitario: adminService.banUser valida self-ban
+  - Test unitario: adminService.updateRole valida self-role-change
+- **Test que lo cubre**: TC-ADMIN-004, TC-ADMIN-007
+- **Bloqueante para release**: ✅ Sí
+
+---
+
+## Plan de Mitigación — Riesgos MEDIO (SPEC-004)
+
+### R-020: Cálculo de XP/nivel incorrecto
+- **Mitigación**: tests parametrizados con fronteras (99→100 XP, 0 XP, score de 51%)
+- **Tests recomendados**: tests unitarios de levelService con todos los boundaries, esquema del escenario Gherkin 5.2/5.3
+
+### R-021: Límite de 5 sugerencias pendientes bajo concurrencia
+- **Mitigación**: conteo dentro de transacción SQL, SELECT FOR UPDATE o serializar
+- **Tests recomendados**: test integración que simula 2 sugerencias simultáneas cuando el usuario tiene 4 pendientes
+
+### R-022: Cambio de umbral no aplicado inmediatamente
+- **Mitigación**: leer siempre de BD (o cache con TTL < 30s) al validar elegibilidad de sugerencia
+- **Tests recomendados**: test integración que cambia umbral y verifica rechazo inmediato
+
+### R-023: Validación case-insensitive inconsistente
+- **Mitigación**: normalizar con LOWER() en queries de búsqueda de duplicados
+- **Tests recomendados**: test integración que intenta crear "pikachu" cuando existe "Pikachu"
+
+### R-024: Datos sensibles en listado de usuarios
+- **Mitigación**: SELECT explícito sin password_hash, mapear DTOs antes de retornar
+- **Tests recomendados**: test integración que verifica que response de GET /admin/users NO contiene password_hash
 
 ### R-008: Feedback visual inconsistente
 - **Mitigación**: test visual manual en Chrome/Firefox, verificar animaciones CSS
@@ -188,8 +294,17 @@
 | R-010 | TC-GAME-013, TC-GAME-015 |
 | R-011 | TC-GAME-005, TC-GAME-006, TC-GAME-007, TC-GAME-008 |
 | R-012 | TC-GAME-001, TC-GAME-004 |
+| R-016 | TC-ADMIN-002, TC-ADMIN-003, TC-ADMIN-008 |
+| R-017 | TC-ADMIN-005, TC-ADMIN-006, TC-BAN-001, TC-BAN-002 |
+| R-018 | TC-ADMIN-012, TC-SUGG-005 |
+| R-019 | TC-ADMIN-004, TC-ADMIN-007 |
+| R-020 | TC-XP-001, TC-XP-002, TC-XP-003, TC-XP-004 |
+| R-021 | TC-SUGG-004 |
+| R-022 | TC-SETTINGS-001, TC-SETTINGS-002 |
+| R-023 | TC-ADMIN-010, TC-SUGG-003 |
+| R-024 | TC-ADMIN-001 |
 
 ---
 
-**Versión:** 1.0
+**Versión:** 2.0
 **Generado por:** QA Agent (ASDD)

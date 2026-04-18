@@ -5,21 +5,25 @@
   "scripts": {
     "test": "wdio run wdio.conf.js",
     "test:smoke": "wdio run wdio.conf.js --cucumberOpts.tagExpression='@smoke'",
-    "report": "serenity-bdd run"
+    "report": "serenity-bdd run",
+    "wdio": "wdio run wdio.conf.js"
   },
   "devDependencies": {
-    "@serenity-js/core": "^3.25.0",
+    "@cucumber/cucumber": "^10.8.0",
+    "@serenity-js/assertions": "^3.25.0",
+    "@serenity-js/core": "^3.42.1",
     "@serenity-js/cucumber": "^3.25.0",
-    "@serenity-js/serenity-bdd": "^3.25.0",
+    "@serenity-js/rest": "^3.25.0",
+    "@serenity-js/serenity-bdd": "^3.42.1",
     "@serenity-js/web": "^3.25.0",
     "@serenity-js/webdriverio": "^3.25.0",
-    "@serenity-js/assertions": "^3.25.0",
-    "@serenity-js/rest": "^3.25.0",
     "@wdio/cli": "^9.0.0",
     "@wdio/local-runner": "^9.0.0",
     "@wdio/spec-reporter": "^9.0.0",
-    "@cucumber/cucumber": "^10.8.0",
     "axios": "^1.7.2",
     "dotenv": "^16.4.5"
+  },
+  "dependencies": {
+    "@serenity-js/console-reporter": "^3.42.1"
   }
 }

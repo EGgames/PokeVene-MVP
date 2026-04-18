@@ -46,8 +46,8 @@ export default function GamePage() {
           className={styles.brand}
           role="button"
           tabIndex={0}
-          onClick={() => navigate('/')}
-          onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
+          onClick={() => navigate(isAuthenticated ? '/dashboard' : '/')}
+          onKeyDown={(e) => e.key === 'Enter' && navigate(isAuthenticated ? '/dashboard' : '/')}
         >
           PokeVene
         </span>

@@ -26,17 +26,43 @@ describe('scoreRoutes integration', () => {
 
   it('test_POST_scores_201_with_auth_and_valid_body', async () => {
     // GIVEN
-    jwt.verify.mockReturnValue({ id: 'u1', username: 'poke' });
-    pool.query.mockResolvedValueOnce({
-      rows: [{
-        id: 's1',
-        user_id: 'u1',
-        score_percentage: 60,
-        terms_answered: 10,
-        correct_count: 6,
-        created_at: '2026-01-01T00:00:00.000Z',
-      }],
-    });
+    jwt.verify.mockReturnValue({ id: 'u1' });
+    pool.query
+      .mockResolvedValueOnce({
+        rows: [{
+          id: 'u1',
+          username: 'poke',
+          role: 'user',
+          xp: 40,
+          level: 0,
+          banned_at: null,
+        }],
+      })
+      .mockResolvedValueOnce({
+        rows: [{
+          id: 's1',
+          user_id: 'u1',
+          score_percentage: 60,
+          terms_answered: 10,
+          correct_count: 6,
+          created_at: '2026-01-01T00:00:00.000Z',
+        }],
+      })
+      .mockResolvedValueOnce({
+        rows: [{
+          id: 'u1',
+          username: 'poke',
+          role: 'user',
+          xp: 40,
+          level: 1,
+          banned_at: null,
+          created_at: '2026-01-01T00:00:00.000Z',
+          updated_at: '2026-01-01T00:00:00.000Z',
+        }],
+      })
+      .mockResolvedValueOnce({
+        rows: [{ id: 'u1', xp: 100, level: 2 }],
+      });
 
     // WHEN
     const response = await request(app)
@@ -50,6 +76,10 @@ describe('scoreRoutes integration', () => {
       id: 's1',
       user_id: 'u1',
       score_percentage: 60,
+      xp_gained: 60,
+      total_xp: 100,
+      level: 2,
+      leveled_up: true,
     });
   });
 
@@ -69,7 +99,17 @@ describe('scoreRoutes integration', () => {
 
   it('test_POST_scores_400_with_score_less_than_51', async () => {
     // GIVEN
-    jwt.verify.mockReturnValue({ id: 'u1', username: 'poke' });
+    jwt.verify.mockReturnValue({ id: 'u1' });
+    pool.query.mockResolvedValueOnce({
+      rows: [{
+        id: 'u1',
+        username: 'poke',
+        role: 'user',
+        xp: 40,
+        level: 0,
+        banned_at: null,
+      }],
+    });
 
     // WHEN
     const response = await request(app)
@@ -98,9 +138,20 @@ describe('scoreRoutes integration', () => {
 
   it('test_GET_me_200_with_auth_returns_user_scores', async () => {
     // GIVEN
-    jwt.verify.mockReturnValue({ id: 'u1', username: 'poke' });
+    jwt.verify.mockReturnValue({ id: 'u1' });
     const rows = [{ id: 's1', user_id: 'u1', score_percentage: 60 }];
-    pool.query.mockResolvedValueOnce({ rows });
+    pool.query
+      .mockResolvedValueOnce({
+        rows: [{
+          id: 'u1',
+          username: 'poke',
+          role: 'user',
+          xp: 40,
+          level: 0,
+          banned_at: null,
+        }],
+      })
+      .mockResolvedValueOnce({ rows });
 
     // WHEN
     const response = await request(app)

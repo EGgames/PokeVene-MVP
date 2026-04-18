@@ -128,10 +128,28 @@ describe('authRoutes integration', () => {
 
   it('test_GET_me_200_with_valid_token', async () => {
     // GIVEN
-    jwt.verify.mockReturnValue({ id: 'u1', username: 'poke' });
-    pool.query.mockResolvedValueOnce({
-      rows: [{ id: 'u1', username: 'poke', created_at: '2026-01-01T00:00:00.000Z' }],
-    });
+    jwt.verify.mockReturnValue({ id: 'u1' });
+    pool.query
+      .mockResolvedValueOnce({
+        rows: [{
+          id: 'u1',
+          username: 'poke',
+          role: 'user',
+          xp: 80,
+          level: 0,
+          banned_at: null,
+        }],
+      })
+      .mockResolvedValueOnce({
+        rows: [{
+          id: 'u1',
+          username: 'poke',
+          role: 'user',
+          xp: 80,
+          level: 0,
+          created_at: '2026-01-01T00:00:00.000Z',
+        }],
+      });
 
     // WHEN
     const response = await request(app)
@@ -143,6 +161,9 @@ describe('authRoutes integration', () => {
     expect(response.body).toEqual({
       id: 'u1',
       username: 'poke',
+      role: 'user',
+      xp: 80,
+      level: 0,
       created_at: '2026-01-01T00:00:00.000Z',
     });
   });

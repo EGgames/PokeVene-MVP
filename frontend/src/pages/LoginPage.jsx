@@ -15,7 +15,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(username, password);
-      navigate('/game', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

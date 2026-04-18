@@ -11,9 +11,9 @@ const { cleanupTestUser } = require('../support/helpers/api.helper');
 // ---------------------------------------------------------------------------
 
 Given('que no existe un usuario con nombre {string}', async function (username) {
-  // Intento de limpieza del usuario si existiera (no-op si no hay endpoint DELETE)
-  await cleanupTestUser(username);
-  this.testUsername = username;
+  // Generar un username único por ejecución para evitar conflicto 409 en runs repetidos
+  const suffix = Date.now().toString(36).slice(-5);
+  this.testUsername = `${username}_${suffix}`;
 });
 
 Given('que existe un usuario registrado con nombre {string} y contraseña {string}', async function (username, password) {
@@ -43,12 +43,14 @@ Given('que el usuario {string} está autenticado con un token válido', async fu
 // ---------------------------------------------------------------------------
 
 When('el usuario ingresa el nombre {string}', async function (username) {
-  this.currentUsername = username;
   const url = await browser.getUrl();
+  // En el flujo de registro, usar el username único generado para evitar conflictos
+  const finalUsername = (url.includes('/register') && this.testUsername) ? this.testUsername : username;
+  this.currentUsername = finalUsername;
   if (url.includes('/register')) {
-    await RegisterPage.setUsername(username);
+    await RegisterPage.setUsername(finalUsername);
   } else {
-    await LoginPage.setUsername(username);
+    await LoginPage.setUsername(finalUsername);
   }
 });
 
@@ -68,26 +70,33 @@ When('ingresa la contraseña {string}', async function (password) {
 // ---------------------------------------------------------------------------
 
 Then('el sistema crea la cuenta exitosamente', async function () {
-  // Verificar redireccionamiento a /game como indicador de éxito
+  // Verificar redireccionamiento a /dashboard como indicador de éxito
   await browser.waitUntil(
     async () => {
       const url = await browser.getUrl();
-      return url.includes('/game');
+      return url.includes('/dashboard') || url.includes('/game');
     },
-    { timeout: 15000, timeoutMsg: 'No se redirigió a /game tras el registro' }
+    { timeout: 15000, timeoutMsg: 'No se redirigió a /dashboard tras el registro' }
   );
 });
 
 Then('retorna un código de estado {int}', async function (_statusCode) {
   // En E2E verificamos el efecto en UI, no el código HTTP directamente.
-  // Un registro exitoso (201) redirige a /game.
-  // Un login exitoso (200) redirige a /game.
+  // Un registro exitoso (201) redirige a /dashboard.
+  // Un login exitoso (200) redirige a /dashboard.
   const url = await browser.getUrl();
-  const hasRedirected = url.includes('/game');
+  const hasRedirected = url.includes('/dashboard') || url.includes('/game');
   assert.ok(hasRedirected, `Se esperaba redirección confirmando el status code esperado`);
 });
 
 Then('retorna un token de sesión válido', async function () {
+  await browser.waitUntil(
+    async () => {
+      const t = await getStoredToken();
+      return t && t.length > 0;
+    },
+    { timeout: 15000, timeoutMsg: 'El token no apareció en localStorage tras registro' }
+  );
   const token = await getStoredToken();
   assert.ok(token, 'No se encontró token en localStorage');
   assert.ok(token.length > 0, 'El token está vacío');
@@ -97,7 +106,7 @@ Then('el usuario es redirigido a la pantalla del juego', async function () {
   await browser.waitUntil(
     async () => {
       const url = await browser.getUrl();
-      return url.includes('/game');
+      return url.includes('/dashboard') || url.includes('/game');
     },
     { timeout: 15000, timeoutMsg: 'No se redirigió a la pantalla del juego' }
   );
@@ -113,6 +122,13 @@ Then('el token queda almacenado en el navegador', async function () {
 // ---------------------------------------------------------------------------
 
 Then('retorna un token de sesión válido con expiración de 7 días', async function () {
+  await browser.waitUntil(
+    async () => {
+      const t = await getStoredToken();
+      return t && t.length > 0;
+    },
+    { timeout: 15000, timeoutMsg: 'El token no apareció en localStorage tras login' }
+  );
   const token = await getStoredToken();
   assert.ok(token, 'No se encontró token en localStorage tras login');
 

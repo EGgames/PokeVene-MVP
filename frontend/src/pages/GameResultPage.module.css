@@ -68,3 +68,27 @@
   max-width: 440px;
   width: 100%;
 }
+
+.xpResult {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #374151;
+  background: #eef2ff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  max-width: 440px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.xpResult p {
+  margin: 0;
+}
+
+.levelUp {
+  font-weight: 700;
+  color: #6366f1;
+  font-size: 1rem;
+}

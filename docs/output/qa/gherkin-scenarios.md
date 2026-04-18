@@ -1,7 +1,7 @@
 # Escenarios Gherkin — PokeVene-MVP
 
-> **Specs cubiertas:** SPEC-002 (Auth) · SPEC-003 (Gameplay)
-> **Fecha:** 2026-04-15
+> **Specs cubiertas:** SPEC-002 (Auth) · SPEC-003 (Gameplay) · SPEC-004 (Admin, Dashboard, Niveles, Sugerencias)
+> **Fecha:** 2026-04-18
 > **Autor:** QA Agent (ASDD)
 > **Datos de prueba:** ver `docs/output/qa/test-data.md`
 
@@ -411,6 +411,390 @@ Característica: Reiniciar Partida o Volver al Inicio
 
 ---
 
+---
+
+## SPEC-004: Sistema de Administración, Dashboard, Niveles y Sugerencias
+
+### Feature: Rol de Administrador y Promoción (HU-01)
+
+```gherkin
+#language: es
+
+Característica: Rol de Administrador y Promoción
+  Como administrador de la plataforma
+  Quiero poder asignar el rol de administrador a otros usuarios
+  Para delegar la gestión de la plataforma
+
+  @happy-path @critico @smoke
+  Escenario: CRITERIO-1.1 — Admin promueve usuario a administrador
+    Dado que el usuario autenticado tiene rol "administrador"
+    Y existe un usuario "pokefan_vzla" con rol "usuario"
+    Cuando el administrador cambia el rol de "pokefan_vzla" a "administrador"
+    Entonces el sistema actualiza el rol del usuario exitosamente
+    Y el usuario "pokefan_vzla" ahora tiene rol "administrador"
+    Y el sistema confirma la operación con un código 200
+
+  @error-path @seguridad
+  Escenario: CRITERIO-1.2 — Usuario sin permisos intenta promover
+    Dado que el usuario autenticado tiene rol "usuario"
+    Cuando intenta cambiar el rol de otro usuario a "administrador"
+    Entonces el sistema rechaza la solicitud
+    Y muestra el mensaje "No tienes permisos de administrador"
+    Y el rol del usuario objetivo no cambia
+
+  @error-path
+  Escenario: CRITERIO-1.3 — Admin intenta promover usuario inexistente
+    Dado que el usuario autenticado tiene rol "administrador"
+    Cuando intenta cambiar el rol de un usuario que no existe en el sistema
+    Entonces el sistema retorna el mensaje "Usuario no encontrado"
+    Y ningún dato es modificado
+
+  @edge-case @seguridad
+  Escenario: Admin intenta cambiar su propio rol
+    Dado que el usuario autenticado tiene rol "administrador"
+    Cuando intenta cambiar su propio rol a "usuario"
+    Entonces el sistema rechaza la solicitud
+    Y muestra un mensaje indicando que no puede modificar su propio rol
+    Y su rol permanece como "administrador"
+```
+
+---
+
+### Feature: Banear Usuarios (HU-02)
+
+```gherkin
+#language: es
+
+Característica: Banear Usuarios
+  Como administrador de la plataforma
+  Quiero poder banear usuarios que incumplan las reglas
+  Para mantener la integridad de la comunidad
+
+  @happy-path @critico @smoke
+  Escenario: CRITERIO-2.1 — Admin banea un usuario
+    Dado que el usuario autenticado es administrador
+    Y existe un usuario activo "infractor_123"
+    Cuando el administrador banea al usuario "infractor_123"
+    Entonces el sistema marca al usuario como baneado
+    Y muestra el mensaje "Usuario baneado exitosamente"
+    Y el usuario baneado no puede iniciar sesión
+
+  @happy-path @critico
+  Escenario: CRITERIO-2.2 — Admin desbanea un usuario
+    Dado que el usuario autenticado es administrador
+    Y el usuario "infractor_123" está baneado
+    Cuando el administrador desbanea al usuario "infractor_123"
+    Entonces el sistema restablece el acceso del usuario
+    Y muestra el mensaje "Usuario desbaneado exitosamente"
+    Y el usuario puede volver a iniciar sesión
+
+  @error-path @seguridad
+  Escenario: CRITERIO-2.3 — Usuario baneado intenta iniciar sesión
+    Dado que el usuario "infractor_123" fue baneado por un administrador
+    Cuando intenta iniciar sesión con credenciales válidas
+    Entonces el sistema rechaza el acceso
+    Y muestra el mensaje "Tu cuenta ha sido suspendida"
+
+  @edge-case @seguridad
+  Escenario: Admin intenta banearse a sí mismo
+    Dado que el usuario autenticado es administrador
+    Cuando intenta banearse a sí mismo
+    Entonces el sistema rechaza la solicitud
+    Y muestra un mensaje indicando que no puede auto-banearse
+    Y su cuenta permanece activa
+```
+
+---
+
+### Feature: Gestión de Términos por Admin (HU-03)
+
+```gherkin
+#language: es
+
+Característica: Gestión de Términos por el Administrador
+  Como administrador de la plataforma
+  Quiero poder agregar y eliminar términos del juego
+  Para mantener el contenido fresco y variado
+
+  @happy-path @critico @smoke
+  Escenario: CRITERIO-3.1 — Admin agrega un nuevo término
+    Dado que el usuario autenticado es administrador
+    Y no existe un término con el texto "Totodile"
+    Cuando agrega el término "Totodile" con categoría "Pokémon"
+    Entonces el sistema crea el término exitosamente
+    Y el término queda disponible para futuras partidas
+
+  @happy-path @critico
+  Escenario: CRITERIO-3.2 — Admin elimina un término existente
+    Dado que el usuario autenticado es administrador
+    Y existe el término "Snorlax" en la lista de términos
+    Cuando elimina el término "Snorlax"
+    Entonces el sistema elimina el término exitosamente
+    Y el término ya no aparece en futuras partidas
+
+  @error-path
+  Escenario: CRITERIO-3.3 — Admin intenta agregar término duplicado
+    Dado que el usuario autenticado es administrador
+    Y ya existe un término con el texto "Pikachu"
+    Cuando intenta agregar el término "Pikachu" con categoría "Pokémon"
+    Entonces el sistema rechaza la solicitud
+    Y muestra el mensaje "El término ya existe"
+    Y no se crea un registro duplicado
+
+  @edge-case
+  Escenario: Admin intenta agregar término con categoría inválida
+    Dado que el usuario autenticado es administrador
+    Cuando intenta agregar el término "TestTerm" con categoría "comida"
+    Entonces el sistema rechaza la solicitud
+    Y muestra un mensaje indicando que la categoría solo puede ser "Pokémon" o "Venezolano"
+```
+
+---
+
+### Feature: Dashboard de Usuario (HU-04)
+
+```gherkin
+#language: es
+
+Característica: Dashboard de Usuario
+  Como usuario autenticado
+  Quiero tener un dashboard personal donde pueda iniciar partidas y ver mi progreso
+  Para tener una experiencia centralizada y personalizada
+
+  @happy-path @critico @smoke
+  Escenario: CRITERIO-4.1 — Usuario ve su dashboard tras iniciar sesión
+    Dado que el usuario "caraquenio_gamer" ha iniciado sesión exitosamente
+    Y tiene nivel 5 con 520 puntos de experiencia
+    Cuando accede al panel de usuario
+    Entonces ve su nombre de usuario "caraquenio_gamer"
+    Y ve su nivel actual como "Nivel 5"
+    Y ve su experiencia acumulada "520 XP"
+    Y ve un botón "Comenzar Partida"
+    Y ve su historial de puntajes recientes
+
+  @happy-path @critico
+  Escenario: CRITERIO-4.2 — Usuario inicia partida desde el dashboard
+    Dado que el usuario está en su panel de usuario
+    Cuando presiona el botón "Comenzar Partida"
+    Entonces navega a la pantalla del juego
+    Y se inicia una nueva partida con términos aleatorios
+
+  @happy-path
+  Escenario: CRITERIO-4.3 — Usuario nivel 10+ ve opción de sugerir términos
+    Dado que el usuario tiene nivel 10 o superior
+    Y el umbral de sugerencias está configurado en 10
+    Cuando accede a su panel de usuario
+    Entonces ve la sección "Sugerir Término" con un formulario
+    Y puede escribir un nombre y seleccionar una categoría
+
+  @edge-case
+  Escenario: CRITERIO-4.4 — Usuario nivel bajo no ve opción de sugerencias
+    Dado que el usuario tiene nivel 5
+    Y el umbral de sugerencias está configurado en 10
+    Cuando accede a su panel de usuario
+    Entonces no ve la sección de sugerencias
+    Y ve un mensaje "Alcanza el nivel 10 para sugerir términos"
+```
+
+---
+
+### Feature: Sistema de Niveles y XP (HU-05)
+
+```gherkin
+#language: es
+
+Característica: Sistema de Niveles y Experiencia
+  Como usuario del juego
+  Quiero ganar experiencia al completar partidas y subir de nivel
+  Para sentir progresión y desbloquear la funcionalidad de sugerencias
+
+  @happy-path @critico @smoke
+  Escenario: CRITERIO-5.1 — Usuario gana XP al completar partida
+    Dado que el usuario "caraquenio_gamer" está autenticado
+    Y tiene 80 puntos de experiencia en nivel 0
+    Y completa una partida con 70% de acierto
+    Cuando el sistema guarda el puntaje
+    Entonces el usuario gana 70 puntos de experiencia
+    Y su experiencia total pasa a 150
+    Y su nivel sube de 0 a 1
+    Y el sistema le indica que subió de nivel
+
+  @happy-path @critico
+  Esquema del escenario: CRITERIO-5.2/5.3 — Cálculo de XP y nivel
+    Dado que la partida tiene 10 preguntas
+    Y el usuario acertó <aciertos> respuestas
+    Cuando el sistema calcula la experiencia ganada
+    Entonces el usuario gana <xp_ganado> puntos de experiencia
+    Y con experiencia acumulada de <xp_total> su nivel es <nivel>
+
+    Ejemplos:
+      | aciertos | xp_ganado | xp_total | nivel |
+      | 10       | 100       | 100      | 1     |
+      | 7        | 70        | 70       | 0     |
+      | 8        | 80        | 250      | 2     |
+      | 6        | 60        | 999      | 9     |
+      | 10       | 100       | 1000     | 10    |
+
+  @edge-case
+  Escenario: CRITERIO-5.4 — Invitado no acumula XP
+    Dado que el usuario está jugando como invitado sin cuenta
+    Cuando completa una partida con 80% de acierto
+    Entonces no se registra experiencia ni nivel
+    Y el sistema no guarda puntaje automáticamente
+
+  @edge-case
+  Escenario: Frontera de nivel — XP exacto en límite
+    Dado que el usuario tiene 99 puntos de experiencia en nivel 0
+    Cuando completa una partida y gana 1 punto de experiencia adicional
+    Entonces su experiencia total pasa a 100
+    Y su nivel sube de 0 a 1
+```
+
+---
+
+### Feature: Sugerencias de Términos (HU-06)
+
+```gherkin
+#language: es
+
+Característica: Sugerencias de Términos por Usuarios Avanzados
+  Como usuario de nivel 10 o superior
+  Quiero poder sugerir nuevos nombres de pokémon o venezolano
+  Para contribuir al contenido del juego
+
+  @happy-path @critico @smoke
+  Escenario: CRITERIO-6.1 — Usuario sugiere un nuevo término
+    Dado que el usuario "pokefan_vzla" tiene nivel 12
+    Y el umbral de sugerencias está configurado en 10
+    Cuando sugiere el término "Typhlosion" con categoría "Pokémon"
+    Entonces el sistema crea la sugerencia con estado "pendiente"
+    Y confirma la creación exitosa
+
+  @happy-path @critico
+  Escenario: CRITERIO-6.2 — Admin aprueba una sugerencia
+    Dado que existe una sugerencia pendiente del término "Typhlosion"
+    Y el usuario autenticado es administrador
+    Cuando aprueba la sugerencia de "Typhlosion"
+    Entonces el término "Typhlosion" se agrega automáticamente a la lista de juego
+    Y la sugerencia cambia a estado "aprobada"
+    Y el sistema confirma la aprobación
+
+  @happy-path
+  Escenario: CRITERIO-6.3 — Admin rechaza una sugerencia
+    Dado que existe una sugerencia pendiente del término "NombreInvalido"
+    Y el usuario autenticado es administrador
+    Cuando rechaza la sugerencia con la nota "No es un término válido"
+    Entonces la sugerencia cambia a estado "rechazada"
+    Y se registra la nota del administrador
+    Y el término no se agrega a la lista de juego
+
+  @error-path @seguridad
+  Escenario: CRITERIO-6.4 — Usuario sin nivel suficiente intenta sugerir
+    Dado que el usuario "novato_01" tiene nivel 5
+    Y el umbral de sugerencias está configurado en 10
+    Cuando intenta sugerir el término "Feraligatr"
+    Entonces el sistema rechaza la solicitud
+    Y muestra el mensaje "Necesitas nivel 10 para sugerir términos"
+
+  @error-path
+  Escenario: CRITERIO-6.5 — Usuario sugiere término que ya existe
+    Dado que el usuario tiene nivel suficiente para sugerir
+    Y ya existe el término "Pikachu" en la lista de juego
+    Cuando intenta sugerir el término "Pikachu"
+    Entonces el sistema rechaza la solicitud
+    Y muestra el mensaje "Este término ya existe o ya fue sugerido"
+
+  @edge-case
+  Escenario: Usuario alcanza el límite de sugerencias pendientes
+    Dado que el usuario "pokefan_vzla" tiene nivel 12
+    Y ya tiene 5 sugerencias en estado "pendiente"
+    Cuando intenta enviar una sexta sugerencia
+    Entonces el sistema rechaza la solicitud
+    Y muestra un mensaje indicando que tiene el máximo de sugerencias pendientes
+```
+
+---
+
+### Feature: Dashboard de Administrador (HU-07)
+
+```gherkin
+#language: es
+
+Característica: Dashboard de Administrador
+  Como administrador de la plataforma
+  Quiero tener un panel centralizado para gestionar usuarios, términos y sugerencias
+  Para administrar la plataforma eficientemente
+
+  @happy-path @critico @smoke
+  Escenario: CRITERIO-7.1 — Admin accede al panel de administración
+    Dado que el usuario autenticado tiene rol "administrador"
+    Cuando accede al panel de administración
+    Entonces ve tres secciones: "Usuarios", "Términos" y "Sugerencias"
+    Y cada sección tiene controles de gestión
+
+  @happy-path @critico
+  Escenario: CRITERIO-7.2 — Admin ve listado de usuarios
+    Dado que el administrador está en el panel de administración
+    Cuando accede a la sección "Usuarios"
+    Entonces ve una tabla con las columnas: nombre de usuario, nivel, rol, estado y acciones
+    Y los usuarios activos muestran estado "Activo"
+    Y los usuarios baneados muestran estado "Baneado"
+
+  @happy-path
+  Escenario: CRITERIO-7.3 — Admin ve sugerencias pendientes
+    Dado que el administrador está en el panel de administración
+    Y existen sugerencias de usuarios en estado "pendiente"
+    Cuando accede a la sección "Sugerencias"
+    Entonces ve una tabla con: texto sugerido, categoría, usuario, fecha y acciones
+    Y cada sugerencia tiene botones "Aprobar" y "Rechazar"
+
+  @error-path @seguridad
+  Escenario: CRITERIO-7.4 — Usuario normal intenta acceder al panel admin
+    Dado que el usuario autenticado tiene rol "usuario"
+    Cuando intenta acceder al panel de administración
+    Entonces es redirigido al panel de usuario
+    Y ve el mensaje "No tienes permisos de administrador"
+```
+
+---
+
+### Feature: Configuración del Umbral de Sugerencias (HU-08)
+
+```gherkin
+#language: es
+
+Característica: Configuración del Umbral de Sugerencias
+  Como administrador de la plataforma
+  Quiero poder cambiar el nivel mínimo requerido para sugerir términos
+  Para ajustar la mecánica según la comunidad crezca
+
+  @happy-path @critico
+  Escenario: CRITERIO-8.1 — Admin actualiza el umbral de sugerencias
+    Dado que el administrador está en la configuración del sistema
+    Y el umbral actual de sugerencias es nivel 10
+    Cuando cambia el umbral de sugerencias a nivel 15
+    Entonces el sistema actualiza el umbral exitosamente
+    Y los usuarios con nivel entre 10 y 14 ya no pueden sugerir términos
+
+  @error-path
+  Escenario: Admin intenta configurar umbral fuera de rango
+    Dado que el administrador está en la configuración del sistema
+    Cuando intenta cambiar el umbral a un valor menor que 1 o mayor que 100
+    Entonces el sistema rechaza la solicitud
+    Y muestra un mensaje indicando que el valor debe estar entre 1 y 100
+
+  @edge-case
+  Escenario: Cambio de umbral afecta elegibilidad instantáneamente
+    Dado que el usuario "pokefan_vzla" tiene nivel 12
+    Y el umbral actual es nivel 10 y puede sugerir
+    Cuando el administrador cambia el umbral a nivel 15
+    Y "pokefan_vzla" intenta sugerir un término
+    Entonces el sistema rechaza la sugerencia
+    Y muestra el mensaje "Necesitas nivel 15 para sugerir términos"
+```
+
+---
+
 ## Resumen de Cobertura Gherkin
 
 | Spec | Feature | HU | Escenarios | Tags principales |
@@ -423,9 +807,17 @@ Característica: Reiniciar Partida o Volver al Inicio
 | SPEC-003 | Guardar | HU-03 | 4 | `@critico`, `@seguridad` |
 | SPEC-003 | Leaderboard | HU-04 | 4 | `@critico`, `@smoke` |
 | SPEC-003 | Reiniciar | HU-05 | 3 | `@critico`, `@seguridad` |
-| **Total** | | | **30** | |
+| SPEC-004 | Rol Admin | HU-01 | 4 | `@critico`, `@seguridad` |
+| SPEC-004 | Banear | HU-02 | 4 | `@critico`, `@seguridad` |
+| SPEC-004 | Términos | HU-03 | 4 | `@critico`, `@smoke` |
+| SPEC-004 | Dashboard Usuario | HU-04 | 4 | `@critico`, `@smoke` |
+| SPEC-004 | Niveles/XP | HU-05 | 4 | `@critico`, `@edge-case` |
+| SPEC-004 | Sugerencias | HU-06 | 6 | `@critico`, `@seguridad` |
+| SPEC-004 | Dashboard Admin | HU-07 | 4 | `@critico`, `@seguridad` |
+| SPEC-004 | Config Umbral | HU-08 | 3 | `@critico`, `@edge-case` |
+| **Total** | | | **63** | |
 
 ---
 
-**Versión:** 1.0
+**Versión:** 2.0
 **Generado por:** QA Agent (ASDD)

@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import LeaderboardTable from '../components/leaderboard/LeaderboardTable';
+import { useAuth } from '../hooks/useAuth';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import styles from './LeaderboardPage.module.css';
 
 export default function LeaderboardPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { scores, loading, error, refresh } = useLeaderboard();
 
   return (
@@ -14,8 +16,8 @@ export default function LeaderboardPage() {
           className={styles.brand}
           role="button"
           tabIndex={0}
-          onClick={() => navigate('/')}
-          onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
+          onClick={() => navigate(isAuthenticated ? '/dashboard' : '/')}
+          onKeyDown={(e) => e.key === 'Enter' && navigate(isAuthenticated ? '/dashboard' : '/')}
         >
           PokeVene
         </span>

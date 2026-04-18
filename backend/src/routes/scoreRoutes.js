@@ -1,8 +1,9 @@
-// Routes: Controladores HTTP de scores — DI instanciada en cada handler (SPEC-003)
+// Routes: Controladores HTTP de scores — DI instanciada en cada handler (SPEC-003, SPEC-004)
 
 const { Router } = require('express');
 const pool = require('../database/connection');
 const ScoreRepository = require('../repositories/scoreRepository');
+const UserRepository = require('../repositories/userRepository');
 const ScoreService = require('../services/scoreService');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -17,7 +18,8 @@ function handle_error(res, err) {
 // Requiere auth. Valida score >= 51% y consistencia anti-cheating.
 router.post('/', authMiddleware, async (req, res) => {
   const score_repo = new ScoreRepository(pool);
-  const score_service = new ScoreService(score_repo);
+  const user_repo = new UserRepository(pool);
+  const score_service = new ScoreService(score_repo, user_repo);
 
   try {
     const { score_percentage, terms_answered, correct_count } = req.body;
@@ -37,7 +39,7 @@ router.post('/', authMiddleware, async (req, res) => {
 // No requiere auth — acceso público.
 router.get('/leaderboard', async (req, res) => {
   const score_repo = new ScoreRepository(pool);
-  const score_service = new ScoreService(score_repo);
+  const score_service = new ScoreService(score_repo, null);
 
   try {
     const limit = req.query.limit !== undefined

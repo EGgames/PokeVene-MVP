@@ -52,6 +52,9 @@ class AuthService {
     return {
       id: user.id,
       username: user.username,
+      role: user.role || 'user',
+      xp: user.xp || 0,
+      level: user.level || 1,
       token,
       created_at: user.created_at,
     };
@@ -79,11 +82,18 @@ class AuthService {
       throw this._buildError('Usuario o contraseña incorrectos', 401);
     }
 
+    if (user.banned_at !== null && user.banned_at !== undefined) {
+      throw this._buildError('Tu cuenta ha sido suspendida', 403);
+    }
+
     const token = this._generateToken(user);
 
     return {
       id: user.id,
       username: user.username,
+      role: user.role,
+      xp: user.xp,
+      level: user.level,
       token,
       expiresIn: JWT_EXPIRES_SECONDS,
     };
@@ -103,6 +113,9 @@ class AuthService {
     return {
       id: user.id,
       username: user.username,
+      role: user.role,
+      xp: user.xp,
+      level: user.level,
       created_at: user.created_at,
     };
   }

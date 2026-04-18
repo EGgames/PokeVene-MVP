@@ -159,7 +159,7 @@ Then('puede interactuar con los botones {string} y {string}', async function (bt
 });
 
 Then('puede completar una partida de {int} preguntas', async function (totalQuestions) {
-  this.gameResult = await GamePage.playGame(6, totalQuestions);
+  this.gameResult = await GamePage.playGame(7, totalQuestions);
   await GameResultPage.waitForResults();
 });
 
@@ -201,11 +201,11 @@ Given('que existen puntajes guardados de múltiples usuarios', async function ()
 Then('ve una tabla con las columnas {string}, {string}, {string} y {string}', async function (col1, col2, col3, col4) {
   await LeaderboardPage.waitForTable();
   const headers = await LeaderboardPage.getColumnHeaders();
-  const headerText = headers.join(', ');
-  assert.ok(headerText.includes(col1), `Columna "${col1}" no encontrada en: ${headerText}`);
-  assert.ok(headerText.includes(col2), `Columna "${col2}" no encontrada en: ${headerText}`);
-  assert.ok(headerText.includes(col3), `Columna "${col3}" no encontrada en: ${headerText}`);
-  assert.ok(headerText.includes(col4), `Columna "${col4}" no encontrada en: ${headerText}`);
+  const headerText = headers.join(', ').toLowerCase();
+  assert.ok(headerText.includes(col1.toLowerCase()), `Columna "${col1}" no encontrada en: ${headers.join(', ')}`);
+  assert.ok(headerText.includes(col2.toLowerCase()), `Columna "${col2}" no encontrada en: ${headers.join(', ')}`);
+  assert.ok(headerText.includes(col3.toLowerCase()), `Columna "${col3}" no encontrada en: ${headers.join(', ')}`);
+  assert.ok(headerText.includes(col4.toLowerCase()), `Columna "${col4}" no encontrada en: ${headers.join(', ')}`);
 });
 
 Then('los puntajes están ordenados de mayor a menor', async function () {

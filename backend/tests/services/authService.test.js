@@ -32,6 +32,9 @@ describe('AuthService', () => {
     userRepository.create.mockResolvedValue({
       id: 'u1',
       username: 'pokefan123',
+      role: 'user',
+      xp: 0,
+      level: 1,
       created_at: '2026-01-01T00:00:00.000Z',
     });
 
@@ -43,6 +46,9 @@ describe('AuthService', () => {
     expect(result).toEqual({
       id: 'u1',
       username: 'pokefan123',
+      role: 'user',
+      xp: 0,
+      level: 1,
       token: 'jwt-token',
       created_at: '2026-01-01T00:00:00.000Z',
     });
@@ -83,6 +89,9 @@ describe('AuthService', () => {
     userRepository.create.mockResolvedValue({
       id: 'u1',
       username: 'pokefan123',
+      role: 'user',
+      xp: 0,
+      level: 1,
       created_at: '2026-01-01T00:00:00.000Z',
     });
 
@@ -100,6 +109,10 @@ describe('AuthService', () => {
     userRepository.findByUsername.mockResolvedValue({
       id: 'u1',
       username: 'pokefan123',
+      role: 'user',
+      xp: 120,
+      level: 1,
+      banned_at: null,
       password_hash: 'hash',
     });
     bcrypt.compare.mockResolvedValue(true);
@@ -111,6 +124,9 @@ describe('AuthService', () => {
     expect(result).toEqual({
       id: 'u1',
       username: 'pokefan123',
+      role: 'user',
+      xp: 120,
+      level: 1,
       token: 'jwt-token',
       expiresIn: 604800,
     });
@@ -135,6 +151,10 @@ describe('AuthService', () => {
     userRepository.findByUsername.mockResolvedValue({
       id: 'u1',
       username: 'pokefan123',
+      role: 'user',
+      xp: 120,
+      level: 1,
+      banned_at: null,
       password_hash: 'hash',
     });
     bcrypt.compare.mockResolvedValue(false);
@@ -146,6 +166,29 @@ describe('AuthService', () => {
     await expect(promise).rejects.toMatchObject({
       statusCode: 401,
       message: 'Usuario o contrase\u00f1a incorrectos',
+    });
+  });
+
+  it('test_login_banned_user_throws_403', async () => {
+    // GIVEN
+    userRepository.findByUsername.mockResolvedValue({
+      id: 'u1',
+      username: 'pokefan123',
+      role: 'user',
+      xp: 120,
+      level: 1,
+      banned_at: '2026-01-01T00:00:00.000Z',
+      password_hash: 'hash',
+    });
+    bcrypt.compare.mockResolvedValue(true);
+
+    // WHEN
+    const promise = service.login('pokefan123', 'Password123');
+
+    // THEN
+    await expect(promise).rejects.toMatchObject({
+      statusCode: 403,
+      message: 'Tu cuenta ha sido suspendida',
     });
   });
 
@@ -168,6 +211,9 @@ describe('AuthService', () => {
     userRepository.findById.mockResolvedValue({
       id: 'u1',
       username: 'pokefan123',
+      role: 'admin',
+      xp: 500,
+      level: 5,
       created_at: '2026-01-01T00:00:00.000Z',
       password_hash: 'hidden',
     });
@@ -179,6 +225,9 @@ describe('AuthService', () => {
     expect(result).toEqual({
       id: 'u1',
       username: 'pokefan123',
+      role: 'admin',
+      xp: 500,
+      level: 5,
       created_at: '2026-01-01T00:00:00.000Z',
     });
     expect(result.password_hash).toBeUndefined();

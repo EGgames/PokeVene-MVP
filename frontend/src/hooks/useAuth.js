@@ -9,6 +9,14 @@ import {
 const AuthContext = createContext(null);
 
 /**
+ * Extrae los campos relevantes del usuario de la respuesta de la API.
+ */
+function extractUserFields(data) {
+  const { id, username, created_at, role, xp, level } = data;
+  return { id, username, created_at, role: role ?? 'user', xp: xp ?? 0, level: level ?? 0 };
+}
+
+/**
  * Proveedor del contexto de autenticación.
  * Envuelve la aplicación para exponer el estado de auth globalmente.
  */
@@ -28,7 +36,7 @@ export function AuthProvider({ children }) {
     validateToken(storedToken)
       .then((userData) => {
         setToken(storedToken);
-        setUser(userData);
+        setUser(extractUserFields(userData));
       })
       .catch(() => {
         // Token inválido o expirado → limpiar
@@ -41,19 +49,34 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
+   * Re-fetches /auth/me y actualiza el estado del usuario.
+   */
+  const refreshUser = useCallback(async () => {
+    const storedToken = token || localStorage.getItem('auth_token');
+    if (!storedToken) return;
+    try {
+      const userData = await validateToken(storedToken);
+      setUser(extractUserFields(userData));
+    } catch {
+      // ignore refresh errors silently
+    }
+  }, [token]);
+
+  /**
    * Inicia sesión con username y password.
    * @param {string} username
    * @param {string} password
    */
   const login = useCallback(async (username, password) => {
     const data = await loginUser(username, password);
-    const { token: newToken, id, username: returnedUsername, created_at } = data;
+    const { token: newToken } = data;
+    const userFields = extractUserFields(data);
 
     localStorage.setItem('auth_token', newToken);
-    localStorage.setItem('auth_user', JSON.stringify({ id, username: returnedUsername, created_at }));
+    localStorage.setItem('auth_user', JSON.stringify(userFields));
 
     setToken(newToken);
-    setUser({ id, username: returnedUsername, created_at });
+    setUser(userFields);
   }, []);
 
   /**
@@ -63,13 +86,14 @@ export function AuthProvider({ children }) {
    */
   const register = useCallback(async (username, password) => {
     const data = await registerUser(username, password);
-    const { token: newToken, id, username: returnedUsername, created_at } = data;
+    const { token: newToken } = data;
+    const userFields = extractUserFields(data);
 
     localStorage.setItem('auth_token', newToken);
-    localStorage.setItem('auth_user', JSON.stringify({ id, username: returnedUsername, created_at }));
+    localStorage.setItem('auth_user', JSON.stringify(userFields));
 
     setToken(newToken);
-    setUser({ id, username: returnedUsername, created_at });
+    setUser(userFields);
   }, []);
 
   /**
@@ -89,6 +113,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    refreshUser,
   };
 
   return React.createElement(AuthContext.Provider, { value }, children);

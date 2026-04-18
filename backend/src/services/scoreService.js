@@ -1,11 +1,13 @@
-// Service: Lógica de negocio para scores — orquesta ScoreRepository (SPEC-003)
+// Service: Lógica de negocio para scores — orquesta ScoreRepository y UserRepository (SPEC-003, SPEC-004)
 
 const MAX_LEADERBOARD_LIMIT = 100;
 const MIN_SCORE_TO_SAVE = 51;
+const { calculateXpGained, calculateLevel } = require('./levelService');
 
 class ScoreService {
-  constructor(score_repository) {
+  constructor(score_repository, user_repository) {
     this.score_repository = score_repository;
+    this.user_repository = user_repository;
   }
 
   _buildError(message, status_code) {
@@ -54,7 +56,35 @@ class ScoreService {
       );
     }
 
-    return this.score_repository.create(user_id, score_percentage, terms_answered, correct_count);
+    const saved_score = await this.score_repository.create(
+      user_id,
+      score_percentage,
+      terms_answered,
+      correct_count
+    );
+
+    // Calcular y persistir XP ganado solo si hay repositorio de usuario
+    if (this.user_repository) {
+      const current_user = await this.user_repository.findById(user_id);
+      if (current_user) {
+        const xp_gained = calculateXpGained(score_percentage);
+        const total_xp = current_user.xp + xp_gained;
+        const new_level = calculateLevel(total_xp);
+        const leveled_up = new_level > current_user.level;
+
+        await this.user_repository.updateXpAndLevel(user_id, total_xp, new_level);
+
+        return {
+          ...saved_score,
+          xp_gained,
+          total_xp,
+          level: new_level,
+          leveled_up,
+        };
+      }
+    }
+
+    return saved_score;
   }
 
   /**

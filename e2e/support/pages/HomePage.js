@@ -1,9 +1,9 @@
 class HomePage {
   get url() { return '/'; }
 
-  get loginButton() { return browser.$('button*=Iniciar Sesión'); }
-  get registerButton() { return browser.$('button*=Registrarse'); }
-  get guestButton() { return browser.$('button*=Jugar como Invitado'); }
+  get loginButton() { return browser.$('#home-login-btn'); }
+  get registerButton() { return browser.$('#home-register-btn'); }
+  get guestButton() { return browser.$('#home-guest-btn'); }
   get logo() { return browser.$('h1'); }
 
   async navigate() {

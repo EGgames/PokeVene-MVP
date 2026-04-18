@@ -2,6 +2,7 @@ const ScoreService = require('../../src/services/scoreService');
 
 describe('ScoreService', () => {
   let scoreRepository;
+  let userRepository;
   let service;
 
   beforeEach(() => {
@@ -9,19 +10,49 @@ describe('ScoreService', () => {
       create: jest.fn(),
       getLeaderboard: jest.fn(),
     };
-    service = new ScoreService(scoreRepository);
+
+    userRepository = {
+      findById: jest.fn(),
+      updateXpAndLevel: jest.fn(),
+    };
+
+    service = new ScoreService(scoreRepository, userRepository);
   });
 
-  it('test_saveScore_success_with_valid_winning_score', async () => {
+  it('test_saveScore_success_with_valid_winning_score_and_updates_xp', async () => {
     // GIVEN
     const saved = { id: 'score-1', user_id: 'u1', score_percentage: 60 };
     scoreRepository.create.mockResolvedValue(saved);
+    userRepository.findById.mockResolvedValue({ id: 'u1', xp: 40, level: 1 });
+    userRepository.updateXpAndLevel.mockResolvedValue({ id: 'u1', xp: 100, level: 2 });
 
     // WHEN
     const result = await service.saveScore('u1', 60, 10, 6);
 
     // THEN
     expect(scoreRepository.create).toHaveBeenCalledWith('u1', 60, 10, 6);
+    expect(userRepository.findById).toHaveBeenCalledWith('u1');
+    expect(userRepository.updateXpAndLevel).toHaveBeenCalledWith('u1', 100, 2);
+    expect(result).toEqual({
+      ...saved,
+      xp_gained: 60,
+      total_xp: 100,
+      level: 2,
+      leveled_up: true,
+    });
+  });
+
+  it('test_saveScore_returns_saved_score_when_user_not_found', async () => {
+    // GIVEN
+    const saved = { id: 'score-1', user_id: 'u1', score_percentage: 60 };
+    scoreRepository.create.mockResolvedValue(saved);
+    userRepository.findById.mockResolvedValue(null);
+
+    // WHEN
+    const result = await service.saveScore('u1', 60, 10, 6);
+
+    // THEN
+    expect(userRepository.updateXpAndLevel).not.toHaveBeenCalled();
     expect(result).toEqual(saved);
   });
 

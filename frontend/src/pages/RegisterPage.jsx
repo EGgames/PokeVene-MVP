@@ -15,7 +15,7 @@ export default function RegisterPage() {
     setError(null);
     try {
       await register(username, password);
-      navigate('/game', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
