@@ -69,8 +69,8 @@ export default function AdminPage() {
           className={styles.brand}
           role="button"
           tabIndex={0}
-          onClick={() => navigate('/')}
-          onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
+          onClick={() => navigate('/dashboard')}
+          onKeyDown={(e) => e.key === 'Enter' && navigate('/dashboard')}
         >
           PokeVene
         </span>
