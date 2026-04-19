@@ -13,7 +13,7 @@ class AuthService {
   }
 
   _generateToken(user) {
-    const expires_in = process.env.JWT_EXPIRES_IN || '7d';
+    const expires_in = (process.env.JWT_EXPIRES_IN || '7d').trim();
     return jwt.sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET,
